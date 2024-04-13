@@ -7,3 +7,5 @@ jetbrains:
       - org.intellij.scala
       - zio.intellij.zio-intellij
       - com.intellij.ml.llm
+    prebuilds:
+      version: stable
