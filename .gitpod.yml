@@ -1,1 +1,9 @@
 image: sbtscala/scala-sbt:eclipse-temurin-jammy-21.0.2_13_1.9.9_3.4.1
+jetbrains:
+  intellij:
+    plugins:
+      - com.intellij.modules.xml
+      - izhangzhihao.rainbow.brackets
+      - org.intellij.scala
+      - zio.intellij.zio-intellij
+      - com.intellij.ml.llm
