@@ -69,27 +69,27 @@ object ZIORecap extends ZIOAppDefault {
       _ <- ZIO.succeed(s"Subscribed $user")
     } yield ()
   }
-  object UserSubscription {
+  private object UserSubscription {
     val live: ZLayer[EmailService with UserDatabase, Nothing, UserSubscription] =
       ZLayer.fromFunction((emailS, userD) => new UserSubscription(emailS, userD))
   }
   class EmailService {
     def email(user: User): Task[Unit] = ZIO.succeed(s"Emailed $user")
   }
-  object EmailService {
+  private object EmailService {
     val live: ZLayer[Any, Nothing, EmailService] = ZLayer.succeed(new EmailService)
   }
   class UserDatabase(connectionPool: ConnectionPool) {
     def insert(user: User): Task[Unit] = ZIO.succeed(s"Inserted $user")
   }
-  object UserDatabase {
+  private object UserDatabase {
     val live: ZLayer[ConnectionPool, Nothing, UserDatabase] =
       ZLayer.fromFunction(new UserDatabase(_))
   }
   class ConnectionPool(nConnections: Int) {
     def get: Task[Connection] = ZIO.succeed(Connection())
   }
-  object ConnectionPool {
+  private object ConnectionPool {
     def live(nConnections: Int): ZLayer[Any, Nothing, ConnectionPool] =
       ZLayer.succeed(ConnectionPool(nConnections))
   }
