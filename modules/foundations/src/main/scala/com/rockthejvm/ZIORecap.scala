@@ -2,63 +2,64 @@ package com.rockthejvm
 
 import zio.*
 
+import java.io.IOException
 import scala.io.StdIn
 
 object ZIORecap extends ZIOAppDefault {
 
-  val meaningOfLife: ZIO[Any, Nothing, Int] = ZIO.succeed(42)
+  private val meaningOfLife: ZIO[Any, Nothing, Int] = ZIO.succeed(42)
   val aFailure: ZIO[Any, String, Nothing] = ZIO.fail("Something went wrong")
   val aSuspension: ZIO[Any, Throwable, Int] = ZIO.suspend(meaningOfLife)
 
-  val improvedMOL = meaningOfLife.map(_ * 2)
-  val printingMOL = meaningOfLife.flatMap(mol => ZIO.succeed(println(mol)))
+  val improvedMOL: ZIO[Any, Nothing, RuntimeFlags] = meaningOfLife.map(_ * 2)
+  val printingMOL: ZIO[Any, Nothing, Unit] = meaningOfLife.flatMap(mol => ZIO.succeed(println(mol)))
 
-  val smallProgram = for {
+  val smallProgram: ZIO[Any, IOException, Unit] = for {
     _ <- Console.printLine("what's your name?")
     name <- ZIO.succeed(StdIn.readLine())
     _ <- Console.printLine(s"Welcome to ZIO, $name")
   } yield ()
 
-  val anAttempt: ZIO[Any, Throwable, Int] = ZIO.attempt {
+  private val anAttempt: ZIO[Any, Throwable, Int] = ZIO.attempt {
     println("Trying something")
     val string: String = null
     string.length
   }
 
-  val catchError = anAttempt.catchAll(e => ZIO.succeed(s"Returning some different value"))
-  val catchSelecting = anAttempt.catchSome {
+  val catchError: ZIO[Any, Nothing, Any] = anAttempt.catchAll(e => ZIO.succeed(s"Returning some different value"))
+  val catchSelecting: ZIO[Any, Throwable, Any] = anAttempt.catchSome {
     case e: RuntimeException => ZIO.succeed(s"Ignoring runtime exception: $e")
     case _ => ZIO.succeed("Ignoring everything else")
   }
 
-  val delayedValue = ZIO.sleep(1.second) *> Random.nextIntBetween(0, 100)
-  val aPair = for {
+  private val delayedValue = Random.nextIntBetween(0, 100).delay(1.second)
+  val aPair: ZIO[Any, Nothing, (Int, Int)] = for {
     a <- delayedValue
     b <- delayedValue
   } yield (a,b) // 2 seconds
 
-  val aPairPar = for {
+  val aPairPar: ZIO[Any, Nothing, (Int, Int)] = for {
     fibA <- delayedValue.fork
     fibB <- delayedValue.fork
     a <- fibA.join
     b <- fibB.join
   } yield (a,b) // 1 second
 
-  val interruptedFiber = for {
+  val interruptedFiber: ZIO[Any, Nothing, Unit] = for {
     fib <- delayedValue.map(println).onInterrupt(ZIO.succeed(println("I'm interrupted!"))).fork
-    _ <- ZIO.sleep(500.millis) *> ZIO.succeed(println("Cancelling fiber")) *> fib.interrupt
+    _ <- ZIO.sleep(500.millis).as(println("Cancelling fiber")) *> fib.interrupt
     _ <- fib.join
   } yield ()
 
-  val ignoredInterruption = for {
+  val ignoredInterruption: ZIO[Any, Nothing, Unit] = for {
     fib <- ZIO.uninterruptible(delayedValue.map(println).onInterrupt(ZIO.succeed(println("I'm interrupted!")))).fork
-    _ <- ZIO.sleep(500.millis) *> ZIO.succeed(println("Cancelling fiber")) *> fib.interrupt
+    _ <- ZIO.sleep(500.millis).as(println("Cancelling fiber")) *> fib.interrupt
     _ <- fib.join
   } yield ()
 
-  val aPairPar_v2 = delayedValue.zipPar(delayedValue)
-  val randomx10 = ZIO.collectAllPar((1 to 10).map(_ => delayedValue)) // "traverse"
-  // reduceAllPar, mergeAllPar, foreachPar
+  val aPairPar_v2: ZIO[Any, Nothing, (Int, Int)] = delayedValue.zipPar(delayedValue)
+  val randomx10: ZIO[Any, Nothing, IndexedSeq[Int]] = ZIO.foreachPar(1 to 10)(_ => delayedValue)
+  // collectAllPar, reduceAllPar, mergeAllPar, foreachPar
 
   case class User(name: String, email: String)
   class UserSubscription(emailService: EmailService, userDatabase: UserDatabase) {
@@ -94,18 +95,18 @@ object ZIORecap extends ZIOAppDefault {
   }
   case class Connection()
 
-  def subscribe(user: User): ZIO[UserSubscription, Throwable, Unit] = for {
+  private def subscribe(user: User): ZIO[UserSubscription, Throwable, Unit] = for {
     sub <- ZIO.service[UserSubscription]
     _ <- sub.subscribeUser(user)
   } yield ()
 
-  val program = for {
+  private val program = for {
     _ <- subscribe(User("Daniel", "daniel@rockthejvm.com"))
     _ <- subscribe(User("Bon Jovi", "jon@rockthejvm.com"))
   } yield ()
 
 
-  override def run = program.provide(
+  override def run: ZIO[Any, Throwable, Unit] = program.provide(
     ConnectionPool.live(10),
     UserDatabase.live,
     EmailService.live,
