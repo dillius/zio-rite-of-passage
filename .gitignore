@@ -4,3 +4,8 @@
 /modules/**/target
 /project/target
 /project/project/target
+**/target
+.bloop
+.metals
+metals.sbt
+.vscode
