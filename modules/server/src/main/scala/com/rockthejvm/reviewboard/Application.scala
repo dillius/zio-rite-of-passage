@@ -1,6 +1,6 @@
 package com.rockthejvm.reviewboard
 
-import com.rockthejvm.reviewboard.http.controllers.HealthController
+import com.rockthejvm.reviewboard.http.HttpApi
 import sttp.tapir.*
 import sttp.tapir.server.ziohttp.*
 import zio.*
@@ -9,11 +9,11 @@ import zio.http.Server
 object Application extends ZIOAppDefault {
 
   val serverProgram = for {
-    controller <- HealthController.makeZIO
+    endpoints <- HttpApi.endpointsZIO
     server <- Server.serve(
       ZioHttpInterpreter(
         ZioHttpServerOptions.default // Can add configs e.g. CORS
-      ).toHttp(List(controller.health))
+      ).toHttp(endpoints)
     )
     _ <- Console.printLine("Rock the JVM!")
   } yield ()
