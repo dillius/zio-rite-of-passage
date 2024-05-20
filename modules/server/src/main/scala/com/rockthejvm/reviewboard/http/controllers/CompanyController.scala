@@ -9,13 +9,11 @@ import sttp.tapir.server.ServerEndpoint
 
 class CompanyController private extends BaseController with CompanyEndpoints {
   // in-memory "database"
-  val db = mutable.Map[Long, Company](
-    -1L -> Company(-1L, "invalid", "No Company", "nothing.com")
-  )
+  val db = mutable.Map[Long, Company]()
 
   val create: ServerEndpoint[Any, Task] = createEndpoint.serverLogicSuccess { req =>
     ZIO.succeed {
-      val newId = db.keys.max + 1
+      val newId = db.keys.maxOption.getOrElse(0L) + 1
       val newCompany = req.toCompany(newId)
       db += (newId -> newCompany)
       newCompany
