@@ -1,6 +1,7 @@
 package com.rockthejvm.reviewboard
 
 import com.rockthejvm.reviewboard.http.HttpApi
+import com.rockthejvm.reviewboard.services.CompanyService
 import sttp.tapir.*
 import sttp.tapir.server.ziohttp.*
 import zio.*
@@ -20,6 +21,7 @@ object Application extends ZIOAppDefault {
 
   override def run =
     serverProgram.provide(
-      Server.default
+      Server.default,
+      CompanyService.dummyLayer
     )
 }
