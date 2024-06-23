@@ -17,7 +17,7 @@ trait CompanyRepository {
 class CompanyRepositoryLive(quill: Quill.Postgres[SnakeCase]) extends CompanyRepository {
   import quill.*
 
-  inline given shema: SchemaMeta[Company] = schemaMeta[Company]("companies")
+  inline given schema: SchemaMeta[Company] = schemaMeta[Company]("companies")
   inline given insMeta: InsertMeta[Company] = insertMeta[Company](_.id)
   inline given upMeta: UpdateMeta[Company] = updateMeta[Company](_.id)
 
