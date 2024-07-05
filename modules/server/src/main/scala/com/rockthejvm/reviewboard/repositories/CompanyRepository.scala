@@ -14,7 +14,7 @@ trait CompanyRepository {
   def get: Task[List[Company]]
 }
 
-class CompanyRepositoryLive(quill: Quill.Postgres[SnakeCase]) extends CompanyRepository {
+class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends CompanyRepository {
   import quill.*
 
   inline given schema: SchemaMeta[Company] = schemaMeta[Company]("companies")

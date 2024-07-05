@@ -10,6 +10,8 @@ import javax.sql.DataSource
 
 object CompanyRepositorySpec extends ZIOSpecDefault with RepositorySpec {
 
+  override val initScript: String = "sql/companies.sql"
+
   private val rtjvm = Company(1L, "rock-the-jvm", "Rock the JVM", "rockthejvm.com")
 
   private def genString() = scala.util.Random.alphanumeric.take(8).mkString

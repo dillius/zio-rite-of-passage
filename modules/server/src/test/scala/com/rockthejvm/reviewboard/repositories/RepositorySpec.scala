@@ -1,17 +1,18 @@
 package com.rockthejvm.reviewboard.repositories
 
 import zio.*
-import zio.test.*
 import org.testcontainers.containers.PostgreSQLContainer
 import org.postgresql.ds.PGSimpleDataSource
 import javax.sql.DataSource
 
 trait RepositorySpec {
+  
+  val initScript: String
+  
   // test containers
   // spawn a Postgres instance on Docker just for the test
   private def createContainer() = {
-    val container: PostgreSQLContainer[Nothing] = PostgreSQLContainer("postgres").withInitScript("sql/companies.sql")
-
+    val container: PostgreSQLContainer[Nothing] = PostgreSQLContainer("postgres").withInitScript(initScript)
     container.start()
     container
   }
