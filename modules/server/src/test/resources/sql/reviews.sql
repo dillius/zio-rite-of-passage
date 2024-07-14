@@ -6,7 +6,7 @@ management INT NOT NULL,
 culture INT NOT NULL,
 salaries INT NOT NULL,
 benefits INT NOT NULL,
-wouldRecommend INT NOT NULL,
+would_recommend INT NOT NULL,
 review TEXT NOT NULL,
 created TIMESTAMP NOT NULL DEFAULT now(),
 updated TIMESTAMP NOT NULL DEFAULT now()
