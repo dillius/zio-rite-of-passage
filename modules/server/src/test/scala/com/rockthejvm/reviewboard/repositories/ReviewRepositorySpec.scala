@@ -25,6 +25,20 @@ object ReviewRepositorySpec extends ZIOSpecDefault with RepositorySpec {
     updated = Instant.now()
   )
 
+  val badReview = Review(
+    id = 2L,
+    companyId = 1L,
+    userId = 1L,
+    management = 1,
+    culture = 1,
+    salaries = 1,
+    benefits = 1,
+    wouldRecommend = 11,
+    review = "BAD BAD",
+    created = Instant.now(),
+    updated = Instant.now()
+  )
+
   override def spec: Spec[TestEnvironment with Scope, Any] =
     suite("ReviewRepositorySpec")(
       test("create review") {
@@ -54,6 +68,45 @@ object ReviewRepositorySpec extends ZIOSpecDefault with RepositorySpec {
             fetchedReview2.contains(review) &&
             fetchedReview3.contains(review)
         )
+      },
+      test("get all") {
+        for {
+          repo <- ZIO.service[ReviewRepository]
+          review1 <- repo.create(goodReview)
+          review2 <- repo.create(badReview)
+          reviewsCompany <- repo.getByCompanyId(review2.companyId)
+          reviewsUser <- repo.getByUserId(review2.userId)
+        } yield assertTrue(
+          reviewsCompany.toSet == Set(review1, review2) &&
+            reviewsUser.toSet == Set(review1, review2)
+        )
+      },
+      test("edit review") {
+        for {
+          repo <- ZIO.service[ReviewRepository]
+          review <- repo.create(goodReview)
+          updated <- repo.update(review.id, _.copy(review = "not too bad"))
+        } yield assertTrue(
+          review.id == updated.id &&
+          review.companyId == updated.companyId &&
+          review.userId == updated.userId &&
+          review.management == updated.management &&
+          review.culture == updated.culture &&
+          review.salaries == updated.salaries &&
+          review.benefits == updated.benefits &&
+          review.wouldRecommend == updated.wouldRecommend &&
+          updated.review == "not too bad" &&
+          review.created == updated.created &&
+          review.updated != updated.updated
+        )
+      },
+      test("delete review") {
+        for {
+          repo <- ZIO.service[ReviewRepository]
+          review <- repo.create(goodReview)
+          _ <- repo.delete(review.id)
+          maybeReview <- repo.getById(review.id)
+        } yield assertTrue(maybeReview.isEmpty)
       }
     ).provide(
       ReviewRepositoryLive.layer,
