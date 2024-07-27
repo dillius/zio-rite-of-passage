@@ -10,24 +10,24 @@ import sttp.tapir.server.ServerEndpoint
 
 class CompanyController private (service: CompanyService) extends BaseController with CompanyEndpoints {
   // in-memory "database"
-  
 
-  val create: ServerEndpoint[Any, Task] = createEndpoint.serverLogicSuccess { req =>
-    service.create(req)
+
+  val create: ServerEndpoint[Any, Task] = createEndpoint.serverLogic { req =>
+    service.create(req).either
   }
 
   val getAll: ServerEndpoint[Any, Task] =
-    getAllEndpoint.serverLogicSuccess{ _ => service.getAll}
+    getAllEndpoint.serverLogic { _ => service.getAll.either}
 
   val getById: ServerEndpoint[Any, Task] =
-    getByIdEndpoint.serverLogicSuccess { id =>
+    getByIdEndpoint.serverLogic { id =>
       ZIO
         .attempt(id.toLong)
         .flatMap(service.getById)
         .catchSome {
           case _ : java.lang.NumberFormatException =>
             service.getBySlug(id)
-        }
+        }.either
     }
 
   override val routes: List[ServerEndpoint[Any, Task]] = List(create, getAll, getById)

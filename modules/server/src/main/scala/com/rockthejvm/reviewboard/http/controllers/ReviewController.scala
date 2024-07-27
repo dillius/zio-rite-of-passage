@@ -8,14 +8,14 @@ import zio.*
 class ReviewController private(reviewService: ReviewService) extends BaseController with ReviewEndpoints {
 
   val create: ServerEndpoint[Any, Task] =
-    createEndpoint.serverLogicSuccess(req => reviewService.create(req, -1L /* TODO add user id */))
-    
+    createEndpoint.serverLogic(req => reviewService.create(req, -1L /* TODO add user id */).either)
+
   val getById: ServerEndpoint[Any, Task] =
-    getByIdEndpoint.serverLogicSuccess(id => reviewService.getById(id))
-    
+    getByIdEndpoint.serverLogic(id => reviewService.getById(id).either)
+
   val getByCompanyId: ServerEndpoint[Any, Task] =
-    getByCompanyIdEndpoint.serverLogicSuccess(companyId => reviewService.getByCompanyId(companyId))
-    
+    getByCompanyIdEndpoint.serverLogic(companyId => reviewService.getByCompanyId(companyId).either)
+
   override val routes: List[ServerEndpoint[Any, Task]] = List(create, getById, getByCompanyId)
 }
 

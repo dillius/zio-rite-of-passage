@@ -6,9 +6,9 @@ import sttp.tapir.*
 import sttp.tapir.json.zio.*
 import sttp.tapir.generic.auto.*
 
-trait ReviewEndpoints {
+trait ReviewEndpoints extends BaseEndpoint {
   val createEndpoint =
-    endpoint
+    baseEndpoint
       .tag("Reviews")
       .name("create")
       .description("Add a review for a company")
@@ -18,7 +18,7 @@ trait ReviewEndpoints {
       .out(jsonBody[Review])
 
   val getByIdEndpoint =
-    endpoint
+    baseEndpoint
       .tag("Reviews")
       .name("getById")
       .description("Get a review by its id")
@@ -27,7 +27,7 @@ trait ReviewEndpoints {
       .out(jsonBody[Option[Review]])
 
   val getByCompanyIdEndpoint =
-    endpoint
+    baseEndpoint
       .tag("Reviews")
       .name("getByCompanyId")
       .description("Get reviews for a company")
