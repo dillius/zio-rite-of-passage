@@ -1,6 +1,6 @@
 package com.rockthejvm.reviewboard.services
 
-import com.rockthejvm.reviewboard.domain.data.User
+import com.rockthejvm.reviewboard.domain.data.*
 import com.rockthejvm.reviewboard.repositories.UserRepository
 import zio.*
 
@@ -11,9 +11,11 @@ import javax.crypto.spec.PBEKeySpec
 trait UserService {
   def registerUser(email: String, password: String): Task[User]
   def verifyPassword(email: String, password: String): Task[Boolean]
+  def generateToken(email: String, password: String): Task[Option[UserToken]]
 }
 
-class UserServiceLive private (userRepo: UserRepository) extends UserService {
+class UserServiceLive private (userRepo: UserRepository, jwtService: JWTService)
+    extends UserService {
   override def registerUser(email: String, password: String): Task[User] =
     userRepo.create(
       User(
@@ -32,11 +34,23 @@ class UserServiceLive private (userRepo: UserRepository) extends UserService {
         UserServiceLive.Hasher.validateHash(password, existingUser.hashedPassword)
       )
     } yield result
+
+  override def generateToken(email: String, password: String): Task[Option[UserToken]] =
+    for {
+      existingUser <- userRepo.getByEmail(email).someOrFail(new RuntimeException(s"cannot verify user $email existing"))
+      verified <- ZIO.attempt(
+        UserServiceLive.Hasher.validateHash(password, existingUser.hashedPassword)
+      ) 
+      maybeToken <- jwtService.createToken(existingUser).when(verified)
+    } yield maybeToken
 }
 
 object UserServiceLive {
   val layer = ZLayer {
-    ZIO.service[UserRepository].map(repo => new UserServiceLive(repo))
+    for {
+      repo       <- ZIO.service[UserRepository]
+      jwtService <- ZIO.service[JWTService]
+    } yield new UserServiceLive(repo, jwtService)
   }
 
   object Hasher {
@@ -97,5 +111,10 @@ object UserServiceLive {
 object UserServiceDemo {
   def main(args: Array[String]) =
     println(UserServiceLive.Hasher.generateHash("rockthejvm"))
-    println(UserServiceLive.Hasher.validateHash("rockthejvm", "1000:CEBF8CD09CEFB575E48CAFBAEF0B4E72705AC48D8BB37C7A:2BF6A1C435A7CD59BEC340D2E4A0D3CD308727B1B815FF1A"))
+    println(
+      UserServiceLive.Hasher.validateHash(
+        "rockthejvm",
+        "1000:CEBF8CD09CEFB575E48CAFBAEF0B4E72705AC48D8BB37C7A:2BF6A1C435A7CD59BEC340D2E4A0D3CD308727B1B815FF1A"
+      )
+    )
 }
