@@ -1,8 +1,19 @@
 package com.rockthejvm.reviewboard
 
+import com.rockthejvm.reviewboard.config.{Configs, JWTConfig}
 import com.rockthejvm.reviewboard.http.HttpApi
-import com.rockthejvm.reviewboard.repositories.{CompanyRepositoryLive, Repository, ReviewRepositoryLive}
-import com.rockthejvm.reviewboard.services.{CompanyServiceLive, ReviewServiceLive}
+import com.rockthejvm.reviewboard.repositories.{
+  CompanyRepositoryLive,
+  Repository,
+  ReviewRepositoryLive,
+  UserRepositoryLive
+}
+import com.rockthejvm.reviewboard.services.{
+  CompanyServiceLive,
+  JWTServiceLive,
+  ReviewServiceLive,
+  UserServiceLive
+}
 import sttp.tapir.*
 import sttp.tapir.server.ziohttp.*
 import zio.*
@@ -23,12 +34,17 @@ object Application extends ZIOAppDefault {
   override def run =
     serverProgram.provide(
       Server.default,
+      // configs
+      Configs.makeLayer[JWTConfig]("rockthejvm.jwt"),
       // services
       CompanyServiceLive.layer,
       ReviewServiceLive.layer,
+      UserServiceLive.layer,
+      JWTServiceLive.layer,
       // repos
       CompanyRepositoryLive.layer,
       ReviewRepositoryLive.layer,
+      UserRepositoryLive.layer,
       // other requirements
       Repository.dataLayer
     )
