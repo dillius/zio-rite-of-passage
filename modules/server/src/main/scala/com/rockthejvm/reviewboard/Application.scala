@@ -25,18 +25,17 @@ object Application extends ZIOAppDefault {
     serverProgram.provide(
       Server.default,
       // configs
-      Configs.makeLayer[JWTConfig]("rockthejvm.jwt"),
       // services
       CompanyServiceLive.layer,
       ReviewServiceLive.layer,
       UserServiceLive.layer,
-      JWTServiceLive.layer,
+      JWTServiceLive.configuredLayer,
       EmailServiceLive.layer,
       // repos
       CompanyRepositoryLive.layer,
       ReviewRepositoryLive.layer,
       UserRepositoryLive.layer,
-      RecoveryTokenRepositoryLive.layer,
+      RecoveryTokenRepositoryLive.configuredLayer,
       // other requirements
       Repository.dataLayer
     )
