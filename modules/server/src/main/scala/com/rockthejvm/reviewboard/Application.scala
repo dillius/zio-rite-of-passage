@@ -1,19 +1,9 @@
 package com.rockthejvm.reviewboard
 
-import com.rockthejvm.reviewboard.config.{Configs, JWTConfig}
+import com.rockthejvm.reviewboard.config.*
 import com.rockthejvm.reviewboard.http.HttpApi
-import com.rockthejvm.reviewboard.repositories.{
-  CompanyRepositoryLive,
-  Repository,
-  ReviewRepositoryLive,
-  UserRepositoryLive
-}
-import com.rockthejvm.reviewboard.services.{
-  CompanyServiceLive,
-  JWTServiceLive,
-  ReviewServiceLive,
-  UserServiceLive
-}
+import com.rockthejvm.reviewboard.repositories.*
+import com.rockthejvm.reviewboard.services.*
 import sttp.tapir.*
 import sttp.tapir.server.ziohttp.*
 import zio.*
@@ -41,10 +31,12 @@ object Application extends ZIOAppDefault {
       ReviewServiceLive.layer,
       UserServiceLive.layer,
       JWTServiceLive.layer,
+      EmailServiceLive.layer,
       // repos
       CompanyRepositoryLive.layer,
       ReviewRepositoryLive.layer,
       UserRepositoryLive.layer,
+      RecoveryTokenRepositoryLive.layer,
       // other requirements
       Repository.dataLayer
     )
