@@ -61,7 +61,8 @@ class UserController private (userService: UserService, jwtService: JWTService)
         .either
     }
 
-  override val routes: List[ServerEndpoint[Any, Task]] = List(create, updatePassword, delete, login)
+  override val routes: List[ServerEndpoint[Any, Task]] =
+    List(create, updatePassword, delete, login, forgotPassword, recoverPassword)
 }
 
 object UserController {
