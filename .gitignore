@@ -9,3 +9,4 @@
 .metals
 metals.sbt
 .vscode
+node_modules
