@@ -2,8 +2,9 @@ package com.rockthejvm.reviewboard.http.controllers
 
 import com.rockthejvm.reviewboard.domain.data.Company
 import com.rockthejvm.reviewboard.http.requests.CreateCompanyRequest
-import com.rockthejvm.reviewboard.services.CompanyService
+import com.rockthejvm.reviewboard.services.*
 import com.rockthejvm.reviewboard.syntax.*
+import com.rockthejvm.reviewboard.domain.data.*
 import sttp.client3.testing.SttpBackendStub
 import sttp.client3.*
 import sttp.monad.MonadError
@@ -32,7 +33,7 @@ object CompanyControllerSpec extends ZIOSpecDefault {
 
     override def getBySlug(slug: String): Task[Option[Company]] =
       ZIO.succeed {
-        if(slug == "rock-the-jvm") Some(rtjvm)
+        if (slug == "rock-the-jvm") Some(rtjvm)
         else None
       }
 
@@ -40,12 +41,22 @@ object CompanyControllerSpec extends ZIOSpecDefault {
       ZIO.succeed(List(rtjvm))
   }
 
+  private val jwtServiceStub = new JWTService {
+    override def createToken(user: User): Task[UserToken] =
+      ZIO.succeed(UserToken(user.email, "ALL_IS_GOOD", Long.MaxValue))
+
+    override def verifyToken(token: String): Task[UserID] =
+      ZIO.succeed(UserID(1, "daniel@rockthejvm.com"))
+  }
+
   private def backendStubZIO(endpointFun: CompanyController => ServerEndpoint[Any, Task]) =
     for {
       controller <- CompanyController.makeZIO
-      backendStub <- ZIO.succeed(TapirStubInterpreter(SttpBackendStub(MonadError[Task]))
-        .whenServerEndpointRunLogic(endpointFun(controller))
-        .backend())
+      backendStub <- ZIO.succeed(
+        TapirStubInterpreter(SttpBackendStub(MonadError[Task]))
+          .whenServerEndpointRunLogic(endpointFun(controller))
+          .backend()
+      )
     } yield backendStub
 
   override def spec: Spec[TestEnvironment with Scope, Any] =
@@ -61,15 +72,16 @@ object CompanyControllerSpec extends ZIOSpecDefault {
           response <- basicRequest
             .post(uri"/companies")
             .body(CreateCompanyRequest("Rock the JVM", "rockthejvm.com").toJson)
+            .header("Authorization", "Bearer ALL_IS_GOOD")
             .send(backendStub)
         } yield response.body
 
         program.assert { respBody =>
-            respBody.toOption.flatMap(_.fromJson[Company].toOption)
-              .contains(Company(1, "rock-the-jvm", "Rock the JVM", "rockthejvm.com"))
-          }
+          respBody.toOption
+            .flatMap(_.fromJson[Company].toOption)
+            .contains(Company(1, "rock-the-jvm", "Rock the JVM", "rockthejvm.com"))
+        }
       },
-
       test("get all") {
         val program = for {
           backendStub <- backendStubZIO(_.getAll)
@@ -79,12 +91,11 @@ object CompanyControllerSpec extends ZIOSpecDefault {
         } yield response.body
 
         program.assert { respBody =>
-            respBody.toOption
-              .flatMap(_.fromJson[List[Company]].toOption)
-              .contains(List(rtjvm))
-          }
+          respBody.toOption
+            .flatMap(_.fromJson[List[Company]].toOption)
+            .contains(List(rtjvm))
+        }
       },
-
       test("get by id") {
         val program = for {
           backendStub <- backendStubZIO(_.getById)
@@ -94,11 +105,11 @@ object CompanyControllerSpec extends ZIOSpecDefault {
         } yield response.body
 
         program.assert { respBody =>
-            respBody.toOption
-              .flatMap(_.fromJson[Company].toOption)
-              .contains(rtjvm)
-          }
+          respBody.toOption
+            .flatMap(_.fromJson[Company].toOption)
+            .contains(rtjvm)
+        }
       }
     )
-      .provide(ZLayer.succeed(serviceStub))
+      .provide(ZLayer.succeed(serviceStub), ZLayer.succeed(jwtServiceStub))
 }

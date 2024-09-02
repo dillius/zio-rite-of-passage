@@ -9,7 +9,7 @@ import com.rockthejvm.reviewboard.domain.data.*
 
 trait CompanyEndpoints extends BaseEndpoint {
   val createEndpoint =
-    baseEndpoint
+    secureBaseEndpoint
       .tag("companies")
       .name("create")
       .description("create a listing for a company")
@@ -31,7 +31,7 @@ trait CompanyEndpoints extends BaseEndpoint {
     baseEndpoint
       .tag("companies")
       .name("getById")
-      .description("get company by its id (or maybe by slug?)") //TODO
+      .description("get company by its id (or maybe by slug?)") // TODO
       .in("companies" / path[String]("id"))
       .get
       .out(jsonBody[Option[Company]])

@@ -18,7 +18,6 @@ trait UserEndpoints extends BaseEndpoint {
       .in(jsonBody[RegisterUserAccount])
       .out(jsonBody[UserResponse])
 
-  // TODO - should be authorized
   val updatePasswordEndpoint =
     secureBaseEndpoint
       .tag("Users")
@@ -29,7 +28,6 @@ trait UserEndpoints extends BaseEndpoint {
       .in(jsonBody[UpdatePasswordRequest])
       .out(jsonBody[UserResponse])
 
-  // TODO - should be authorized
   val deleteEndpoint =
     secureBaseEndpoint
       .tag("Users")
