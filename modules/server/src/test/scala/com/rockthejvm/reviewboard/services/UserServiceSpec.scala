@@ -1,7 +1,7 @@
 package com.rockthejvm.reviewboard.services
 
 import com.rockthejvm.reviewboard.domain.data.*
-import com.rockthejvm.reviewboard.repositories.UserRepository
+import com.rockthejvm.reviewboard.repositories.{RecoveryTokensRepository, UserRepository}
 import zio.*
 import zio.test.*
 
@@ -34,6 +34,27 @@ object UserServiceSpec extends ZIOSpecDefault {
         user
       }
     }
+  }
+
+  val stubTokenRepoLayer = ZLayer.succeed {
+    new RecoveryTokensRepository {
+      val db = collection.mutable.Map[String, String]()
+
+      override def getToken(email: String): Task[Option[String]] =
+        ZIO.attempt {
+          val token = util.Random.alphanumeric.take(8).mkString.toUpperCase
+          db += (email -> token)
+          Some(token)
+        }
+
+      override def checkToken(email: String, token: String): Task[Boolean] =
+        ZIO.succeed(db.get(email).filter(_ == token).nonEmpty)
+    }
+  }
+
+  val stubEmailsLayer = ZLayer.succeed {
+    new EmailService:
+      override def sendEmail(to: String, subject: String, content: String): Task[Unit] = ZIO.unit
   }
 
   val stubJwtLayer = ZLayer.succeed {
@@ -101,6 +122,8 @@ object UserServiceSpec extends ZIOSpecDefault {
     ).provide(
       UserServiceLive.layer,
       stubJwtLayer,
-      stubRepoLayer
+      stubRepoLayer,
+      stubEmailsLayer,
+      stubTokenRepoLayer
     )
 }

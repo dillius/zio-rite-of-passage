@@ -11,7 +11,7 @@ trait RecoveryTokensRepository {
   def checkToken(email: String, token: String): Task[Boolean]
 }
 
-class RecoveryTokenRepositoryLive private (
+class RecoveryTokensRepositoryLive private(
     tokenConfig: RecoveryTokensConfig,
     quill: Quill.Postgres[SnakeCase],
     userRepo: UserRepository
@@ -86,13 +86,13 @@ class RecoveryTokenRepositoryLive private (
     ).map(_.nonEmpty)
 }
 
-object RecoveryTokenRepositoryLive {
+object RecoveryTokensRepositoryLive {
   def layer = ZLayer {
     for {
       config   <- ZIO.service[RecoveryTokensConfig]
       quill    <- ZIO.service[Quill.Postgres[SnakeCase.type]]
       userRepo <- ZIO.service[UserRepository]
-    } yield new RecoveryTokenRepositoryLive(config, quill, userRepo)
+    } yield new RecoveryTokensRepositoryLive(config, quill, userRepo)
   }
 
   def configuredLayer =

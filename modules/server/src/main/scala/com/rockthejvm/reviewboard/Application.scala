@@ -35,7 +35,7 @@ object Application extends ZIOAppDefault {
       CompanyRepositoryLive.layer,
       ReviewRepositoryLive.layer,
       UserRepositoryLive.layer,
-      RecoveryTokenRepositoryLive.configuredLayer,
+      RecoveryTokensRepositoryLive.configuredLayer,
       // other requirements
       Repository.dataLayer
     )
