@@ -10,3 +10,5 @@
 metals.sbt
 .vscode
 node_modules
+dist
+.parcel-cache
