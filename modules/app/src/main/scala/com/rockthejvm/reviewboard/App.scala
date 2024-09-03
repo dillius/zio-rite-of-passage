@@ -3,15 +3,24 @@ package com.rockthejvm.reviewboard
 import com.raquo.airstream.ownership.OneTimeOwner
 import com.raquo.laminar.api.L.{*, given}
 import org.scalajs.dom
+import frontroute.*
 
 import scala.util.Try
 
+import com.rockthejvm.reviewboard.components.*
+
 object App {
+
+  val app = div(
+    Header(),
+    Router()
+  ).amend(LinkHandler.bind)
+
   def main(args: Array[String]): Unit = {
     val containerNode = dom.document.querySelector("#app")
     render(
       containerNode,
-      Tutorial.clicksVar
+      app
     )
   }
 }
