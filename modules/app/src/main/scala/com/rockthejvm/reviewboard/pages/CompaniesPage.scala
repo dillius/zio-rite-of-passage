@@ -4,11 +4,16 @@ import com.raquo.laminar.api.L.{*, given}
 import com.rockthejvm.reviewboard.common.Constants
 import com.rockthejvm.reviewboard.components.*
 import com.rockthejvm.reviewboard.domain.data.*
+import com.rockthejvm.reviewboard.http.endpoints.CompanyEndpoints
 import org.scalajs.dom
+import zio.*
+import sttp.client3.*
+import sttp.client3.impl.zio.FetchZioBackend
+import sttp.tapir.client.sttp.SttpClientInterpreter
 
 object CompaniesPage {
 
-  val dummyCompnay = Company(
+  val dummyCompany = Company(
     1L,
     "dummy-company",
     "Simple Company",
@@ -20,8 +25,29 @@ object CompaniesPage {
     List("space", "scala")
   )
 
+  val companiesBus = EventBus[List[Company]]()
+
+  def performBackendCall(): Unit = {
+    val companyEndpoints                   = new CompanyEndpoints {}
+    val theEndpoint                        = companyEndpoints.getAllEndpoint
+    val backend                            = FetchZioBackend()
+    val interpreter: SttpClientInterpreter = SttpClientInterpreter()
+    val request =
+      interpreter
+        .toRequestThrowDecodeFailures(theEndpoint, Some(uri"http://localhost:8080"))
+        .apply(())
+    val companiesZIO = backend.send(request).map(_.body).absolve
+
+    Unsafe.unsafe { implicit unsafe =>
+      Runtime.default.unsafe.fork(
+        companiesZIO.tap(list => ZIO.attempt(companiesBus.emit(list)))
+      )
+    }
+  }
+
   def apply() =
     sectionTag(
+      onMountCallback(_ => performBackendCall()),
       cls := "section-1",
       div(
         cls := "container company-list-hero",
@@ -40,8 +66,7 @@ object CompaniesPage {
           ),
           div(
             cls := "col-lg-8",
-            renderCompany(dummyCompnay),
-            renderCompany(dummyCompnay)
+            children <-- companiesBus.events.map(_.map(renderCompany))
           )
         )
       )
