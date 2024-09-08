@@ -1,15 +1,15 @@
 package com.rockthejvm.reviewboard.integration
 
 import com.rockthejvm.reviewboard.config.{JWTConfig, RecoveryTokensConfig}
-import com.rockthejvm.reviewboard.domain.data.UserToken
+import com.rockthejvm.reviewboard.domain.data.*
+import com.rockthejvm.reviewboard.http.requests.*
+import com.rockthejvm.reviewboard.http.responses.*
 import zio.*
 import zio.test.*
 import sttp.client3.*
 import zio.json.*
 import sttp.tapir.generic.auto.*
 import com.rockthejvm.reviewboard.http.controllers.*
-import com.rockthejvm.reviewboard.http.requests.*
-import com.rockthejvm.reviewboard.http.responses.*
 import com.rockthejvm.reviewboard.repositories.*
 import com.rockthejvm.reviewboard.services.*
 import sttp.client3.testing.SttpBackendStub
@@ -56,7 +56,7 @@ object UserFlowSpec extends ZIOSpecDefault with RepositorySpec {
     def postAuth[B: JsonCodec](path: String, payload: A, token: String): Task[Option[B]] =
       sendRequest(Method.POST, path, payload, Some(token))
 
-    def postNoResponse(path:String, payload: A): Task[Unit] =
+    def postNoResponse(path: String, payload: A): Task[Unit] =
       basicRequest
         .method(Method.POST, uri"$path")
         .body(payload.toJson)
@@ -86,7 +86,8 @@ object UserFlowSpec extends ZIOSpecDefault with RepositorySpec {
 
     def probeToken(email: String): Task[Option[String]] = ZIO.succeed(db.get(email))
   }
-  val emailServiceLayer: ZLayer[Any, Nothing, EmailServiceProbe] = ZLayer.succeed(new EmailServiceProbe)
+  val emailServiceLayer: ZLayer[Any, Nothing, EmailServiceProbe] =
+    ZLayer.succeed(new EmailServiceProbe)
 
   override def spec: Spec[TestEnvironment with Scope, Any] =
     suite("UserFlowSpec")(
@@ -176,10 +177,18 @@ object UserFlowSpec extends ZIOSpecDefault with RepositorySpec {
             "/users",
             RegisterUserAccount("daniel@rockthejvm.com", "rockthejvm")
           )
-          _ <- backendStub.postNoResponse("/users/forgot", ForgotPasswordRequest("daniel@rockthejvm.com"))
+          _ <- backendStub.postNoResponse(
+            "/users/forgot",
+            ForgotPasswordRequest("daniel@rockthejvm.com")
+          )
           emailServiceProbe <- ZIO.service[EmailServiceProbe]
-          token <- emailServiceProbe.probeToken("daniel@rockthejvm.com").someOrFail(new RuntimeException("token was NOT emailed!"))
-          _ <- backendStub.postNoResponse("/users/recover", RecoverPasswordRequest("daniel@rockthejvm.com", token, "scalarulez"))
+          token <- emailServiceProbe
+            .probeToken("daniel@rockthejvm.com")
+            .someOrFail(new RuntimeException("token was NOT emailed!"))
+          _ <- backendStub.postNoResponse(
+            "/users/recover",
+            RecoverPasswordRequest("daniel@rockthejvm.com", token, "scalarulez")
+          )
           maybeOldToken <- backendStub
             .post[UserToken](
               "/users/login",

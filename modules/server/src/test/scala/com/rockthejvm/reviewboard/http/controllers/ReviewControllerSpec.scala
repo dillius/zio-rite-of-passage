@@ -1,9 +1,9 @@
 package com.rockthejvm.reviewboard.http.controllers
 
-import com.rockthejvm.reviewboard.domain.data.*
-import com.rockthejvm.reviewboard.http.requests.*
 import com.rockthejvm.reviewboard.services.{JWTService, ReviewService}
 import com.rockthejvm.reviewboard.syntax.*
+import com.rockthejvm.reviewboard.domain.data.*
+import com.rockthejvm.reviewboard.http.requests.*
 import sttp.client3.testing.SttpBackendStub
 import sttp.client3.*
 import sttp.monad.MonadError

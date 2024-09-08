@@ -1,6 +1,6 @@
 package com.rockthejvm.reviewboard.http.controllers
 
-import com.rockthejvm.reviewboard.domain.data.UserID
+import com.rockthejvm.reviewboard.domain.data.*
 import com.rockthejvm.reviewboard.domain.errors.*
 import com.rockthejvm.reviewboard.http.endpoints.UserEndpoints
 import com.rockthejvm.reviewboard.http.responses.UserResponse

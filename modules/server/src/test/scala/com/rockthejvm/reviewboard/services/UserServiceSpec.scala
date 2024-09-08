@@ -1,7 +1,7 @@
 package com.rockthejvm.reviewboard.services
 
-import com.rockthejvm.reviewboard.domain.data.*
 import com.rockthejvm.reviewboard.repositories.{RecoveryTokensRepository, UserRepository}
+import com.rockthejvm.reviewboard.domain.data.*
 import zio.*
 import zio.test.*
 
@@ -104,19 +104,19 @@ object UserServiceSpec extends ZIOSpecDefault {
       test("delete non-existent user should fail") {
         for {
           service <- ZIO.service[UserService]
-          err <- service.deleteUser("someone@gmail.com", "something").flip
+          err     <- service.deleteUser("someone@gmail.com", "something").flip
         } yield assertTrue(err.isInstanceOf[RuntimeException])
       },
       test("delete with incorrect credentials should fail") {
         for {
           service <- ZIO.service[UserService]
-          err <- service.deleteUser(daniel.email, "something").flip
+          err     <- service.deleteUser(daniel.email, "something").flip
         } yield assertTrue(err.isInstanceOf[RuntimeException])
       },
       test("delete user") {
         for {
           service <- ZIO.service[UserService]
-          user <- service.deleteUser(daniel.email, "rockthejvm")
+          user    <- service.deleteUser(daniel.email, "rockthejvm")
         } yield assertTrue(user.email == daniel.email)
       }
     ).provide(

@@ -2,9 +2,9 @@ package com.rockthejvm.reviewboard.http.controllers
 
 import com.rockthejvm.reviewboard.domain.data.Company
 import com.rockthejvm.reviewboard.http.requests.CreateCompanyRequest
+import com.rockthejvm.reviewboard.domain.data.*
 import com.rockthejvm.reviewboard.services.*
 import com.rockthejvm.reviewboard.syntax.*
-import com.rockthejvm.reviewboard.domain.data.*
 import sttp.client3.testing.SttpBackendStub
 import sttp.client3.*
 import sttp.monad.MonadError

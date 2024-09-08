@@ -1,6 +1,6 @@
 package com.rockthejvm.reviewboard.repositories
 
-import com.rockthejvm.reviewboard.domain.data.*
+import com.rockthejvm.reviewboard.domain.data.Company
 import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
@@ -17,10 +17,9 @@ trait CompanyRepository {
 class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends CompanyRepository {
   import quill.*
 
-  inline given schema: SchemaMeta[Company] = schemaMeta[Company]("companies")
+  inline given schema: SchemaMeta[Company]  = schemaMeta[Company]("companies")
   inline given insMeta: InsertMeta[Company] = insertMeta[Company](_.id)
-  inline given upMeta: UpdateMeta[Company] = updateMeta[Company](_.id)
-
+  inline given upMeta: UpdateMeta[Company]  = updateMeta[Company](_.id)
 
   override def create(company: Company): Task[Company] =
     run {
@@ -70,7 +69,7 @@ object CompanyRepositoryLive {
 object CompanyRepositoryDemo extends ZIOAppDefault {
   val program = for {
     repo <- ZIO.service[CompanyRepository]
-    _ <- repo.create(Company(-1L, "rock-the-jvm", "Rock the JVM", "rockthejvm.com"))
+    _    <- repo.create(Company(-1L, "rock-the-jvm", "Rock the JVM", "rockthejvm.com"))
   } yield ()
 
   override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] =
