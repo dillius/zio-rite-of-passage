@@ -1,48 +1,21 @@
 package com.rockthejvm.reviewboard.pages
 
 import com.raquo.laminar.api.L.{*, given}
-import com.rockthejvm.reviewboard.common.Constants
-import com.rockthejvm.reviewboard.components.*
-import com.rockthejvm.reviewboard.domain.data.*
-import com.rockthejvm.reviewboard.http.endpoints.CompanyEndpoints
 import org.scalajs.dom
 import zio.*
-import sttp.client3.*
-import sttp.client3.impl.zio.FetchZioBackend
-import sttp.tapir.client.sttp.SttpClientInterpreter
+
+import com.rockthejvm.reviewboard.common.*
+import com.rockthejvm.reviewboard.components.*
+import com.rockthejvm.reviewboard.domain.data.*
+import com.rockthejvm.reviewboard.core.ZJS.*
 
 object CompaniesPage {
-
-  val dummyCompany = Company(
-    1L,
-    "dummy-company",
-    "Simple Company",
-    "http://dummy.com",
-    Some("Anywhere"),
-    Some("On Mars"),
-    Some("space travel"),
-    None,
-    List("space", "scala")
-  )
 
   val companiesBus = EventBus[List[Company]]()
 
   def performBackendCall(): Unit = {
-    val companyEndpoints                   = new CompanyEndpoints {}
-    val theEndpoint                        = companyEndpoints.getAllEndpoint
-    val backend                            = FetchZioBackend()
-    val interpreter: SttpClientInterpreter = SttpClientInterpreter()
-    val request =
-      interpreter
-        .toRequestThrowDecodeFailures(theEndpoint, Some(uri"http://localhost:8080"))
-        .apply(())
-    val companiesZIO = backend.send(request).map(_.body).absolve
-
-    Unsafe.unsafe { implicit unsafe =>
-      Runtime.default.unsafe.fork(
-        companiesZIO.tap(list => ZIO.attempt(companiesBus.emit(list)))
-      )
-    }
+    val companiesZIO = useBackend(_.company.getAllEndpoint(()))
+    companiesZIO.emitTo(companiesBus)
   }
 
   def apply() =
