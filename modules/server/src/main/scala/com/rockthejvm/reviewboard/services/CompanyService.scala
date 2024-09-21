@@ -1,6 +1,6 @@
 package com.rockthejvm.reviewboard.services
 
-import com.rockthejvm.reviewboard.domain.data.Company
+import com.rockthejvm.reviewboard.domain.data.{Company, CompanyFilter}
 import com.rockthejvm.reviewboard.http.requests.CreateCompanyRequest
 import com.rockthejvm.reviewboard.repositories.CompanyRepository
 import zio.*
@@ -12,14 +12,16 @@ trait CompanyService {
   def getAll: Task[List[Company]]
   def getById(id: Long): Task[Option[Company]]
   def getBySlug(slug: String): Task[Option[Company]]
+  def allFilters: Task[CompanyFilter]
 }
 
-class CompanyServiceLive private(repo: CompanyRepository) extends CompanyService {
+class CompanyServiceLive private (repo: CompanyRepository) extends CompanyService {
 
   override def create(req: CreateCompanyRequest): Task[Company] = repo.create(req.toCompany(-1))
-  override def getAll: Task[List[Company]] = repo.get
-  override def getById(id: Long): Task[Option[Company]] = repo.getById(id)
-  override def getBySlug(slug: String): Task[Option[Company]] = repo.getBySlug(slug)
+  override def getAll: Task[List[Company]]                      = repo.get
+  override def getById(id: Long): Task[Option[Company]]         = repo.getById(id)
+  override def getBySlug(slug: String): Task[Option[Company]]   = repo.getBySlug(slug)
+  override def allFilters: Task[CompanyFilter]                  = repo.uniqueAttributes
 }
 
 object CompanyServiceLive {
@@ -27,5 +29,5 @@ object CompanyServiceLive {
     for {
       repo <- ZIO.service[CompanyRepository]
     } yield new CompanyServiceLive(repo)
-  } 
+  }
 }

@@ -1,6 +1,6 @@
 package com.rockthejvm.reviewboard.http.endpoints
 
-import com.rockthejvm.reviewboard.domain.data.Company
+import com.rockthejvm.reviewboard.domain.data.{Company, CompanyFilter}
 import sttp.tapir.*
 import sttp.tapir.json.zio.*
 import sttp.tapir.generic.auto.*
@@ -34,4 +34,13 @@ trait CompanyEndpoints extends BaseEndpoint {
       .in("companies" / path[String]("id"))
       .get
       .out(jsonBody[Option[Company]])
+
+  val allFiltersEndpoint =
+    baseEndpoint
+      .tag("companies")
+      .name("allFilters")
+      .description("Get all possible search filters")
+      .in("companies" / "filters")
+      .get
+      .out(jsonBody[CompanyFilter])
 }

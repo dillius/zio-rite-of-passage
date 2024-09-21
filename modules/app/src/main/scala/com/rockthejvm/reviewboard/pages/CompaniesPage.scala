@@ -13,10 +13,8 @@ object CompaniesPage {
 
   val companiesBus = EventBus[List[Company]]()
 
-  def performBackendCall(): Unit = {
-    val companiesZIO = useBackend(_.company.getAllEndpoint(()))
-    companiesZIO.emitTo(companiesBus)
-  }
+  def performBackendCall(): Unit =
+    useBackend(_.company.getAllEndpoint(())).emitTo(companiesBus)
 
   def apply() =
     sectionTag(
@@ -35,7 +33,7 @@ object CompaniesPage {
           cls := "row jvm-recent-companies-body",
           div(
             cls := "col-lg-4",
-            div("TODO filter panel here")
+            FilterPanel()
           ),
           div(
             cls := "col-lg-8",
