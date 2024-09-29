@@ -13,6 +13,7 @@ trait CompanyRepository {
   def getBySlug(slug: String): Task[Option[Company]]
   def get: Task[List[Company]]
   def uniqueAttributes: Task[CompanyFilter]
+  def search(filter: CompanyFilter): Task[List[Company]]
 }
 
 class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends CompanyRepository {
@@ -65,6 +66,26 @@ class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends C
       industries <- run(query[Company].map(_.industry).distinct).map(_.flatMap(_.toList))
       tags       <- run(query[Company].map(_.tags)).map(_.flatten.toSet.toList)
     } yield CompanyFilter(locations, countries, industries, tags)
+
+  override def search(filter: CompanyFilter): Task[List[Company]] =
+    if (filter.isEmpty) get
+    else
+      run {
+        query[Company]
+          .filter { company =>
+            liftQuery(filter.locations.toSet).contains(company.location) ||
+            liftQuery(filter.countries.toSet).contains(company.country) ||
+            liftQuery(filter.industries.toSet).contains(company.industry) ||
+            sql"${lift(filter.tags)} && ${company.tags}".asCondition
+//            liftQuery(filter.tags.toSet).filter(t => company.tags.contains(t)).nonEmpty
+//            "OR company.tags && ?"
+//            query[Company]
+//              .filter(_.id == company.id)
+//              .concatMap(_.tags)
+//              .filter(tag => liftQuery(filter.tags.toSet).contains(tag))
+//              .nonEmpty
+          }
+      }
 }
 
 object CompanyRepositoryLive {

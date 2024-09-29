@@ -11,14 +11,22 @@ import com.rockthejvm.reviewboard.core.ZJS.*
 
 object CompaniesPage {
 
-  val companiesBus = EventBus[List[Company]]()
+  val filterPanel = new FilterPanel
 
-  def performBackendCall(): Unit =
-    useBackend(_.company.getAllEndpoint(())).emitTo(companiesBus)
+  val companyEvents: EventStream[List[Company]] =
+    useBackend(_.company.getAllEndpoint(())).toEventStream.mergeWith(
+      filterPanel.triggerFilters.flatMap { newFilter =>
+        useBackend(_.company.searchEndpoint(newFilter)).toEventStream
+      }
+    )
+//  val companiesBus = EventBus[List[Company]]()
+//
+//  def performBackendCall(): Unit =
+//    useBackend(_.company.getAllEndpoint(())).emitTo(companiesBus)
 
   def apply() =
     sectionTag(
-      onMountCallback(_ => performBackendCall()),
+//      onMountCallback(_ => performBackendCall()),
       cls := "section-1",
       div(
         cls := "container company-list-hero",
@@ -33,11 +41,11 @@ object CompaniesPage {
           cls := "row jvm-recent-companies-body",
           div(
             cls := "col-lg-4",
-            FilterPanel()
+            filterPanel()
           ),
           div(
             cls := "col-lg-8",
-            children <-- companiesBus.events.map(_.map(renderCompany))
+            children <-- companyEvents.map(_.map(renderCompany))
           )
         )
       )

@@ -7,19 +7,19 @@ import com.rockthejvm.reviewboard.domain.data.CompanyFilter
 import org.scalajs.dom
 import zio.*
 
-object FilterPanel {
+class FilterPanel {
   case class CheckValueEvent(groupName: String, value: String, checked: Boolean)
 
-  val GROUP_LOCATIONS  = "Locations"
-  val GROUP_COUNTRIES  = "Countries"
-  val GROUP_INDUSTRIES = "Industries"
-  val GROUP_TAGS       = "Tags"
+  private val GROUP_LOCATIONS  = "Locations"
+  private val GROUP_COUNTRIES  = "Countries"
+  private val GROUP_INDUSTRIES = "Industries"
+  private val GROUP_TAGS       = "Tags"
 
-  val possibleFilter = Var[CompanyFilter](CompanyFilter.empty)
-  val checkEvents    = EventBus[CheckValueEvent]()
-  val clicks         = EventBus[Unit]()
-  val dirty          = clicks.events.mapTo(false).mergeWith(checkEvents.events.mapTo(true))
-  val state: Signal[CompanyFilter] = checkEvents.events
+  private val possibleFilter = Var[CompanyFilter](CompanyFilter.empty)
+  private val checkEvents    = EventBus[CheckValueEvent]()
+  private val clicks         = EventBus[Unit]()
+  private val dirty          = clicks.events.mapTo(false).mergeWith(checkEvents.events.mapTo(true))
+  private val state: Signal[CompanyFilter] = checkEvents.events
     .scanLeft(Map[String, Set[String]]()) { (currentMap, event) =>
       event match {
         case CheckValueEvent(groupName, value, checked) =>
@@ -36,6 +36,8 @@ object FilterPanel {
       )
     }
 
+  val triggerFilters: EventStream[CompanyFilter] = clicks.events.withCurrentValueOf(state)
+
   def apply() =
     div(
       onMountCallback(_ =>
@@ -43,6 +45,7 @@ object FilterPanel {
       ),
 //      child.text <-- checkEvents.events.map(_.toString),
 //      child.text <-- state.map(_.toString),
+//      child.text <-- triggerFilters.map(_.toString),
       cls    := "accordion accordion-flush",
       idAttr := "accordionFlushExample",
       div(

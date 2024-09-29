@@ -23,6 +23,12 @@ object ZJS {
         )
       }
 
+    def toEventStream: EventStream[A] = {
+      val bus = EventBus[A]()
+      emitTo(bus)
+      bus.events
+    }
+
     def runJs =
       Unsafe.unsafe(implicit unsafe =>
         Runtime.default.unsafe.runToFuture(zio.provide(BackendClientLive.configuredLayer))
