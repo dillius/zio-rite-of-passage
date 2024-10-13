@@ -2,6 +2,7 @@ package com.rockthejvm.reviewboard.pages
 
 import com.raquo.laminar.api.L.{*, given}
 import com.rockthejvm.reviewboard.common.*
+import com.rockthejvm.reviewboard.core.*
 import com.rockthejvm.reviewboard.core.ZJS.*
 import com.rockthejvm.reviewboard.http.requests.LoginRequest
 import frontroute.BrowserNavigation
@@ -34,7 +35,7 @@ object LoginPage {
       dom.console.log(s"Current state is: $state")
       useBackend(_.user.loginEndpoint(LoginRequest(state.email, state.password)))
         .map { userToken =>
-          // TODO set user token here
+          Session.setUserState(userToken)
           stateVar.set(State())
           BrowserNavigation.replaceState("/")
         }

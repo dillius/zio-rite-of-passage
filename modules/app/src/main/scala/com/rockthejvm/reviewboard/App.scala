@@ -6,12 +6,13 @@ import org.scalajs.dom
 import frontroute.*
 
 import scala.util.Try
-
 import com.rockthejvm.reviewboard.components.*
+import com.rockthejvm.reviewboard.core.Session
 
 object App {
 
   val app = div(
+    onMountCallback(_ => Session.loadUserState()),
     Header(),
     Router()
   ).amend(LinkHandler.bind)
