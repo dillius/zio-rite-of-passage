@@ -12,6 +12,7 @@ import sttp.tapir.client.sttp.SttpClientInterpreter
 
 trait BackendClient {
   val company: CompanyEndpoints
+  val user: UserEndpoints
 
   def endpointRequestZIO[I, E <: Throwable, O](endpoint: Endpoint[Unit, I, E, O, Any])(
       payload: I
@@ -24,6 +25,7 @@ class BackendClientLive(
     config: BackendClientConfig
 ) extends BackendClient {
   override val company: CompanyEndpoints = new CompanyEndpoints {}
+  override val user: UserEndpoints       = new UserEndpoints {}
 
   def endpointRequest[I, E, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
